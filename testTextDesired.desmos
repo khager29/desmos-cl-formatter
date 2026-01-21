@@ -1,0 +1,51 @@
+p: table1.columnNumericValues(1)
+
+q: table1.columnNumericValues(2)
+
+s_{howGraph}: 
+  when table2.cellNumericValue(1,2)=0.5 
+    and table2.cellNumericValue(2,2)=1 
+    and table2.cellNumericValue(3,2)=0 
+    and act1.pressCount>0 1 
+  otherwise 0
+
+figure2number = table1.cellNumericValue(2,2)
+figure3number = table1.cellNumericValue(3,2)
+
+a = table2.cellNumericValue(1,2)
+h = table2.cellNumericValue(2,2)
+k = table2.cellNumericValue(3,2)
+
+content: 
+  when a = 0.5 and h = 1 and k = 0 and act1.timeSincePress>0 "Fireworks!" 
+  when act1.timeSincePress>0 "Try again!" 
+  otherwise "Write a regression that best fits the data.  Hit the Check button to graph the regression."
+
+choiceList = [
+  c.choiceLocation(1),
+  c.choiceLocation(2), 
+  c.choiceLocation(3)
+].map((locations)=>a.lasso(locations))
+
+playFeedback = when b.pressCount = 0 feedbackStart
+  when animEnd
+    when is Correct feedbackCorrect
+    otherwise feedbackIncorrect[max([indexCurrentFeedback,1])] 
+  otherwise ""
+
+isSubmitted = 
+  time>0 and 
+  b.lastValue("selected") = c.script.selected
+
+feedbackEnd = timedOut or (
+    animEnd and (
+          timeall > 0 or
+          firstDefinedValue(playFeedback, "") = feedbackSkip
+    ))
+
+Number = p.anyOf(
+  reasonableNumber, p.mixedNumber,
+  p.fraction(reasonableNumber,wholeNumber), p.fraction(wholeNumber, reasonableNumber),
+  p.negative(special), p.negative(Fraction),
+  p.radical(reasonableNumber), p.radical(p.number), p.radical(Fraction)
+)
