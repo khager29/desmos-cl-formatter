@@ -1,0 +1,5 @@
+number("s_{howGraph}"):
+  when attempt
+    and act3.timeSincePress>0
+    and act3.timeSincePress<5 1
+  otherwise 0

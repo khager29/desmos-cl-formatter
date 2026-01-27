@@ -1,0 +1,14 @@
+number(`v_{0}`): when isDefined(table1.cellNumericValue(1,2)) table1.cellNumericValue(1,2) otherwise 25
+number(`d_{0}`): when isDefined(table1.cellNumericValue(3,2)) table1.cellNumericValue(3,2) otherwise 100
+bounds: makeBounds(-10,10,-10,graph2.number("h_{max}"))
+hidden: not(toggle1.isSelected(1))
+roundFn = simpleFunction(`\round\left(x,y\right)`,"x","y")
+cellContent(2,2): `${roundFn.evaluateAt(graph2.number("v_{current}"),2)}`
+cellContent(4,2): `${roundFn.evaluateAt(graph2.number("h"),2)}`
+cellContent(5,2): `${roundFn.evaluateAt(graph1.number("P_E"),2)}`
+cellContent(6,2): `${roundFn.evaluateAt(graph1.number("K_E"),2)}`
+cellContent(7,2): `${roundFn.evaluateAt(graph1.number("T_E"),2)}`
+hidden: not(toggle1.isSelected(2))
+number("h_{eight}"): graph2.number(`h`)
+number("v"):graph2.number("v_{current}")
+bounds: makeBounds(-20,90,-10,graph1.number("t_{op}"))
