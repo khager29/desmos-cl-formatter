@@ -5,7 +5,6 @@ export const formatText = (
     text: string,
     options: { tabSize: number; insertSpaces: boolean; printWidth: number }
 ) => {
-    console.log("formatting...");
     const ast = parseProgram(text);
     return printProgram(ast, options);
 };

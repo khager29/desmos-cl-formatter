@@ -1,6 +1,6 @@
 export function printProgram(
     program: any,
-    options: { tabSize: number; insertSpaces: boolean; printWidth: number }
+    options: { tabSize: number; insertSpaces: boolean; printWidth: number },
 ): string {
     const printedNode = printNode(program, options);
     return docToString(printedNode, options)
@@ -11,7 +11,7 @@ export function printProgram(
 
 function docToString(
     printedNode: any,
-    options: { tabSize: number; insertSpaces: boolean; printWidth: number }
+    options: { tabSize: number; insertSpaces: boolean; printWidth: number },
 ): string {
     if (typeof printedNode === "string") {
         return printedNode;
@@ -38,11 +38,17 @@ function docToString(
     return "";
 }
 
-function indentUnit(options: { tabSize: number; insertSpaces: boolean }): string {
+function indentUnit(options: {
+    tabSize: number;
+    insertSpaces: boolean;
+}): string {
     return options.insertSpaces ? " ".repeat(options.tabSize) : "\t";
 }
 
-function indent(level: number, options: { tabSize: number; insertSpaces: boolean }): string {
+function indent(
+    level: number,
+    options: { tabSize: number; insertSpaces: boolean },
+): string {
     return indentUnit(options).repeat(Math.max(level, 0));
 }
 
@@ -50,7 +56,10 @@ function isWordChar(ch: string | undefined): boolean {
     return !!ch && /[A-Za-z0-9_]/.test(ch);
 }
 
-function splitTopLevelLogical(text: string): { segments: string[]; connectors: string[] } {
+function splitTopLevelLogical(text: string): {
+    segments: string[];
+    connectors: string[];
+} {
     const segments: string[] = [];
     const connectors: string[] = [];
 
@@ -71,16 +80,31 @@ function splitTopLevelLogical(text: string): { segments: string[]; connectors: s
         }
 
         if (!inString) {
-            if (ch === "(") parenDepth += 1;
-            if (ch === ")") parenDepth = Math.max(parenDepth - 1, 0);
-            if (ch === "[") bracketDepth += 1;
-            if (ch === "]") bracketDepth = Math.max(bracketDepth - 1, 0);
-            if (ch === "{") braceDepth += 1;
-            if (ch === "}") braceDepth = Math.max(braceDepth - 1, 0);
+            if (ch === "(") {
+                parenDepth += 1;
+            }
+            if (ch === ")") {
+                parenDepth = Math.max(parenDepth - 1, 0);
+            }
+            if (ch === "[") {
+                bracketDepth += 1;
+            }
+            if (ch === "]") {
+                bracketDepth = Math.max(bracketDepth - 1, 0);
+            }
+            if (ch === "{") {
+                braceDepth += 1;
+            }
+            if (ch === "}") {
+                braceDepth = Math.max(braceDepth - 1, 0);
+            }
         }
 
         const atTopLevel =
-            !inString && parenDepth === 0 && bracketDepth === 0 && braceDepth === 0;
+            !inString &&
+            parenDepth === 0 &&
+            bracketDepth === 0 &&
+            braceDepth === 0;
         if (atTopLevel) {
             const andMatch =
                 text.slice(i, i + 3) === "and" &&
@@ -134,16 +158,31 @@ function splitTopLevelCommas(text: string): string[] {
         }
 
         if (!inString) {
-            if (ch === "(") parenDepth += 1;
-            if (ch === ")") parenDepth = Math.max(parenDepth - 1, 0);
-            if (ch === "[") bracketDepth += 1;
-            if (ch === "]") bracketDepth = Math.max(bracketDepth - 1, 0);
-            if (ch === "{") braceDepth += 1;
-            if (ch === "}") braceDepth = Math.max(braceDepth - 1, 0);
+            if (ch === "(") {
+                parenDepth += 1;
+            }
+            if (ch === ")") {
+                parenDepth = Math.max(parenDepth - 1, 0);
+            }
+            if (ch === "[") {
+                bracketDepth += 1;
+            }
+            if (ch === "]") {
+                bracketDepth = Math.max(bracketDepth - 1, 0);
+            }
+            if (ch === "{") {
+                braceDepth += 1;
+            }
+            if (ch === "}") {
+                braceDepth = Math.max(braceDepth - 1, 0);
+            }
         }
 
         const atTopLevel =
-            !inString && parenDepth === 0 && bracketDepth === 0 && braceDepth === 0;
+            !inString &&
+            parenDepth === 0 &&
+            bracketDepth === 0 &&
+            braceDepth === 0;
         if (atTopLevel && ch === ",") {
             const item = buffer.trim();
             if (item) {
@@ -164,7 +203,12 @@ function splitTopLevelCommas(text: string): string[] {
     return items;
 }
 
-function findMatchingBracket(text: string, startIndex: number, open: string, close: string): number {
+function findMatchingBracket(
+    text: string,
+    startIndex: number,
+    open: string,
+    close: string,
+): number {
     let depth = 0;
     let inString = false;
 
@@ -178,7 +222,9 @@ function findMatchingBracket(text: string, startIndex: number, open: string, clo
         if (inString) {
             continue;
         }
-        if (ch === open) depth += 1;
+        if (ch === open) {
+            depth += 1;
+        }
         if (ch === close) {
             depth -= 1;
             if (depth === 0) {
@@ -192,7 +238,7 @@ function findMatchingBracket(text: string, startIndex: number, open: string, clo
 
 function formatArrayIfNeeded(
     value: string,
-    options: { tabSize: number; insertSpaces: boolean }
+    options: { tabSize: number; insertSpaces: boolean },
 ): string | null {
     const openIndex = value.indexOf("[");
     if (openIndex === -1) {
@@ -246,8 +292,12 @@ function isWrappedInParens(text: string): boolean {
             continue;
         }
 
-        if (ch === "(") depth += 1;
-        if (ch === ")") depth -= 1;
+        if (ch === "(") {
+            depth += 1;
+        }
+        if (ch === ")") {
+            depth -= 1;
+        }
 
         if (depth === 0 && i < trimmed.length - 1) {
             return false;
@@ -260,7 +310,7 @@ function isWrappedInParens(text: string): boolean {
 function formatLogicalExpression(
     value: string,
     options: { tabSize: number; insertSpaces: boolean },
-    baseIndentLevel = 0
+    baseIndentLevel = 0,
 ): string {
     const trimmed = value.trim();
 
@@ -295,7 +345,7 @@ function formatLogicalExpression(
         const formattedSegment = formatLogicalExpression(
             segments[i],
             options,
-            baseIndentLevel
+            baseIndentLevel,
         );
         const prefix = i > 0 ? continuationIndent : "";
         const suffix = connector ? ` ${connector}` : "";
@@ -308,7 +358,7 @@ function formatLogicalExpression(
 function formatClauseText(
     text: string,
     options: { tabSize: number; insertSpaces: boolean },
-    clauseIndentLevel: number
+    clauseIndentLevel: number,
 ): string {
     const trimmed = text.trim();
 
@@ -331,7 +381,9 @@ function formatClauseText(
         }
         const connector = connectors[i - 1];
         const connectorText = connector ? `${connector} ` : "";
-        lines.push(`${continuationIndent}${connectorText}${segments[i].trim()}`);
+        lines.push(
+            `${continuationIndent}${connectorText}${segments[i].trim()}`,
+        );
     }
 
     return lines.join("\n");
@@ -340,7 +392,7 @@ function formatClauseText(
 function formatClauses(
     clauses: Array<{ type: "when" | "otherwise"; text: string; depth: number }>,
     options: { tabSize: number; insertSpaces: boolean },
-    inlineFirst: boolean
+    inlineFirst: boolean,
 ): string {
     if (!clauses.length) {
         return "";
@@ -352,7 +404,11 @@ function formatClauses(
     clauses.forEach((clause, index) => {
         const clauseIndentLevel = baseIndentLevel + clause.depth;
         const clauseIndent = indent(clauseIndentLevel, options);
-        const clauseText = formatClauseText(clause.text, options, clauseIndentLevel);
+        const clauseText = formatClauseText(
+            clause.text,
+            options,
+            clauseIndentLevel,
+        );
         const clauseLine = `${clause.type} ${clauseText}`.trimEnd();
 
         if (index === 0 && inlineFirst) {
@@ -372,7 +428,7 @@ function formatClauses(
 
 function formatValue(
     value: string,
-    options: { tabSize: number; insertSpaces: boolean }
+    options: { tabSize: number; insertSpaces: boolean },
 ): string {
     const trimmed = value.trim();
 
@@ -386,7 +442,7 @@ function formatValue(
 
 function printNode(
     node: any,
-    options: { tabSize: number; insertSpaces: boolean; printWidth: number }
+    options: { tabSize: number; insertSpaces: boolean; printWidth: number },
 ): any {
     if (Array.isArray(node)) {
         return node.map((n) => printNode(n, options)).join("\n");
@@ -401,7 +457,11 @@ function printNode(
         }
         case "initialization": {
             if (node.clauses?.length) {
-                const printedClauses = formatClauses(node.clauses, options, true);
+                const printedClauses = formatClauses(
+                    node.clauses,
+                    options,
+                    true,
+                );
                 const clauseLines = printedClauses.split("\n");
                 if (clauseLines.length === 1) {
                     return `${node.name} = ${clauseLines[0]}`;
@@ -416,7 +476,9 @@ function printNode(
                 }
                 const indented = formattedValue
                     .split("\n")
-                    .map((line, index) => (index === 0 ? line : `${indent(1, options)}${line}`))
+                    .map((line, index) =>
+                        index === 0 ? line : `${indent(1, options)}${line}`,
+                    )
                     .join("\n");
                 return `${node.name} = \n${indented}`;
             }
