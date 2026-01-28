@@ -6,6 +6,7 @@
     "engines": {
         "vscode": "^1.108.0"
     },
+    "publisher": "khager29",
     "repository": {
         "type": "git",
         "url": "https://github.com"
