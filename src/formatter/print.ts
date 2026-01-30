@@ -272,6 +272,122 @@ function formatArrayIfNeeded(
     return ["[", ...lines, closing].join("\n");
 }
 
+function findTopLevelOpenParen(text: string): number {
+    let parenDepth = 0;
+    let bracketDepth = 0;
+    let braceDepth = 0;
+    let inString = false;
+
+    for (let i = 0; i < text.length; i += 1) {
+        const ch = text[i];
+        const prev = text[i - 1];
+
+        if (ch === '"' && prev !== "\\") {
+            inString = !inString;
+            continue;
+        }
+
+        if (inString) {
+            continue;
+        }
+
+        if (ch === "(") {
+            if (
+                parenDepth === 0 &&
+                bracketDepth === 0 &&
+                braceDepth === 0
+            ) {
+                return i;
+            }
+            parenDepth += 1;
+            continue;
+        }
+        if (ch === ")") {
+            parenDepth = Math.max(parenDepth - 1, 0);
+            continue;
+        }
+        if (ch === "[") {
+            bracketDepth += 1;
+            continue;
+        }
+        if (ch === "]") {
+            bracketDepth = Math.max(bracketDepth - 1, 0);
+            continue;
+        }
+        if (ch === "{") {
+            braceDepth += 1;
+            continue;
+        }
+        if (ch === "}") {
+            braceDepth = Math.max(braceDepth - 1, 0);
+            continue;
+        }
+    }
+
+    return -1;
+}
+
+function formatFunctionCallIfNeeded(
+    value: string,
+    options: { tabSize: number; insertSpaces: boolean; printWidth: number },
+): string | null {
+    const openIndex = findTopLevelOpenParen(value);
+    if (openIndex === -1) {
+        return null;
+    }
+
+    const closeIndex = findMatchingBracket(value, openIndex, "(", ")");
+    if (closeIndex === -1) {
+        return null;
+    }
+
+    const prefix = value.slice(0, openIndex).trimEnd();
+    if (!prefix) {
+        return null;
+    }
+
+    const suffix = value.slice(closeIndex + 1).trim();
+    if (suffix) {
+        return null;
+    }
+
+    const inside = value.slice(openIndex + 1, closeIndex);
+    const items = splitTopLevelCommas(inside);
+    if (items.length <= 1) {
+        return null;
+    }
+
+    if (value.length <= options.printWidth) {
+        return null;
+    }
+
+    const itemIndent = indent(1, options);
+    const lines: string[] = [];
+    let current = "";
+
+    items.forEach((item, index) => {
+        const piece = `${item.trim()}${index < items.length - 1 ? "," : ""}`;
+        if (!current) {
+            current = `${itemIndent}${piece}`;
+            return;
+        }
+
+        if (current.length + 1 + piece.length <= options.printWidth) {
+            current = `${current} ${piece}`;
+            return;
+        }
+
+        lines.push(current);
+        current = `${itemIndent}${piece}`;
+    });
+
+    if (current) {
+        lines.push(current);
+    }
+
+    return `${prefix}(\n${lines.join("\n")}\n)`;
+}
+
 function isWrappedInParens(text: string): boolean {
     const trimmed = text.trim();
     if (!trimmed.startsWith("(") || !trimmed.endsWith(")")) {
@@ -428,13 +544,18 @@ function formatClauses(
 
 function formatValue(
     value: string,
-    options: { tabSize: number; insertSpaces: boolean },
+    options: { tabSize: number; insertSpaces: boolean; printWidth: number },
 ): string {
     const trimmed = value.trim();
 
     const arrayFormatted = formatArrayIfNeeded(trimmed, options);
     if (arrayFormatted) {
         return arrayFormatted;
+    }
+
+    const callFormatted = formatFunctionCallIfNeeded(trimmed, options);
+    if (callFormatted) {
+        return callFormatted;
     }
 
     return formatLogicalExpression(trimmed, options);
@@ -474,8 +595,17 @@ function printNode(
                 if (formattedValue.trimStart().startsWith("[")) {
                     return `${node.name} = ${formattedValue}`;
                 }
-                const indented = formattedValue
-                    .split("\n")
+                const lines = formattedValue.split("\n");
+                const firstLine = lines[0].trimEnd();
+                const lastLine = lines[lines.length - 1].trim();
+                const shouldInline =
+                    firstLine.endsWith("(") && /^\)+$/.test(lastLine);
+
+                if (shouldInline) {
+                    return `${node.name} = ${formattedValue}`;
+                }
+
+                const indented = lines
                     .map((line, index) =>
                         index === 0 ? line : `${indent(1, options)}${line}`,
                     )

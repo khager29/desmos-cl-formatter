@@ -1,4 +1,4 @@
-# desmos-cl-formatter README
+# Desmos CL Formatter and IntelliSense
 
 This extension formats Desmos construction layer code into a more human-readable format and provides IntelliSense to speed writing.
 

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { formatText } from "./formatter/formatText";
-import { loadDocumentationIndex } from "./intellisense/docIndex";
+import { getDocumentationIndex } from "./intellisense/docIndex";
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your "desmos-cl-formatter" is now active!');
@@ -9,9 +9,9 @@ export function activate(context: vscode.ExtensionContext) {
         "desmos-cl-formatter.formatCode",
         () => {
             vscode.window.showInformationMessage(
-                "Your code has been formatted!"
+                "Your code has been formatted!",
             );
-        }
+        },
     );
 
     const selector: vscode.DocumentSelector = [
@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
         provideDocumentFormattingEdits(document, options, token) {
             const fullRange = new vscode.Range(
                 document.positionAt(0),
-                document.positionAt(document.getText().length)
+                document.positionAt(document.getText().length),
             );
 
             const originalText = document.getText();
@@ -50,19 +50,19 @@ export function activate(context: vscode.ExtensionContext) {
     ].map((label) => {
         const item = new vscode.CompletionItem(
             label,
-            vscode.CompletionItemKind.Keyword
+            vscode.CompletionItemKind.Keyword,
         );
         item.insertText = label;
         return item;
     });
 
-    const docIndex = loadDocumentationIndex(context.extensionPath);
+    const docIndex = getDocumentationIndex();
 
     const attributeNames = new Set(docIndex.attributes);
     const functionCompletions = docIndex.functions.map((name) => {
         const item = new vscode.CompletionItem(
             name,
-            vscode.CompletionItemKind.Function
+            vscode.CompletionItemKind.Function,
         );
         item.insertText = new vscode.SnippetString(`${name}($1)`);
         return item;
@@ -71,7 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
     const attributeCompletions = docIndex.attributes.map((name) => {
         const item = new vscode.CompletionItem(
             name,
-            vscode.CompletionItemKind.Property
+            vscode.CompletionItemKind.Property,
         );
         item.insertText = name;
         return item;
@@ -80,7 +80,7 @@ export function activate(context: vscode.ExtensionContext) {
     const typeCompletions = docIndex.types.map((name) => {
         const item = new vscode.CompletionItem(
             name,
-            vscode.CompletionItemKind.Class
+            vscode.CompletionItemKind.Class,
         );
         item.insertText = name;
         return item;
@@ -90,10 +90,10 @@ export function activate(context: vscode.ExtensionContext) {
         (() => {
             const item = new vscode.CompletionItem(
                 "when … otherwise",
-                vscode.CompletionItemKind.Snippet
+                vscode.CompletionItemKind.Snippet,
             );
             item.insertText = new vscode.SnippetString(
-                "when ${1:condition} ${2:value}\notherwise ${3:value}"
+                "when ${1:condition} ${2:value}\notherwise ${3:value}",
             );
             item.detail = "Conditional block";
             return item;
@@ -101,10 +101,10 @@ export function activate(context: vscode.ExtensionContext) {
         (() => {
             const item = new vscode.CompletionItem(
                 "when … when … otherwise",
-                vscode.CompletionItemKind.Snippet
+                vscode.CompletionItemKind.Snippet,
             );
             item.insertText = new vscode.SnippetString(
-                "when ${1:condition} ${2:value}\nwhen ${3:condition} ${4:value}\notherwise ${5:value}"
+                "when ${1:condition} ${2:value}\nwhen ${3:condition} ${4:value}\notherwise ${5:value}",
             );
             item.detail = "Multi-branch conditional block";
             return item;
@@ -125,7 +125,7 @@ export function activate(context: vscode.ExtensionContext) {
 
             if (/\.\s*$/.test(linePrefix)) {
                 const attributeOnlyFunctions = functionCompletions.filter(
-                    (item) => !attributeNames.has(String(item.label))
+                    (item) => !attributeNames.has(String(item.label)),
                 );
                 return [...attributeCompletions, ...attributeOnlyFunctions].map(
                     (item) => {
@@ -134,11 +134,13 @@ export function activate(context: vscode.ExtensionContext) {
                                 ? item.label
                                 : item.label.label;
                         if (currentWord && label.startsWith(currentWord)) {
-                            const priority = attributeNames.has(label) ? "0" : "1";
+                            const priority = attributeNames.has(label)
+                                ? "0"
+                                : "1";
                             item.sortText = `${priority}_${label}`;
                         }
                         return item;
-                    }
+                    },
                 );
             }
 
@@ -155,15 +157,23 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.languages.registerDocumentFormattingEditProvider(
             selector,
-            provider
-        )
+            provider,
+        ),
     );
+    // Register completion provider for dot notation
     context.subscriptions.push(
         vscode.languages.registerCompletionItemProvider(
             selector,
             completionProvider,
-            "."
-        )
+            ".",
+        ),
+    );
+    // Register completion provider for general typing (no trigger character = always active)
+    context.subscriptions.push(
+        vscode.languages.registerCompletionItemProvider(
+            selector,
+            completionProvider,
+        ),
     );
 }
 
